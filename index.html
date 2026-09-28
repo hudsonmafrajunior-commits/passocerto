@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Passo Firme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="dados.js"></script>
+<style>
+:root{
+  --bg:#F1F4F8; --surface:#FFFFFF; --ink:#132C4A; --text:#1B2531; --muted:#56657A; --line:#D3DBE6;
+  --pri:#1F4E8C; --pri-soft:#DCE7F5; --acc:#E07A2E; --ok:#2A7B4F; --warn:#9A6A00; --bad:#B3352D;
+  --baixo:#2A7B4F; --moderado:#E3A21A; --alto:#B3352D;
+  --head:"Bricolage Grotesque",Georgia,serif; --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0E1622; --surface:#16233A; --ink:#DCE6F4; --text:#DDE4EE; --muted:#9DAAC0; --line:#2A3A55;
+  --pri:#7EA9E6; --pri-soft:#1D3150; --ok:#64C28E; --warn:#E6B54B; --bad:#EF7B72;}}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--text);font:18px/1.55 var(--body)}
+h1,h2,h3{font-family:var(--head);color:var(--ink);line-height:1.1;margin:0}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.wrap{max-width:680px;margin:0 auto;padding:0 18px}
+
+.bar{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar .wrap{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-top:12px;padding-bottom:10px}
+.bar strong{font:800 1.2rem var(--head);color:var(--pri)}
+.bar span{font-size:.8rem;color:var(--muted);text-align:right}
+.prog{height:4px;background:var(--line)}.prog i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+
+section[data-step]{display:none;padding:24px 0 80px}
+section[data-step].on{display:block}
+h2{font-size:1.85rem;font-weight:800;margin-bottom:8px}
+.kicker{font-size:.85rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.lead{color:var(--muted);margin:0 0 18px}
+.q{margin:22px 0 10px;font-weight:700;color:var(--ink)}
+.q small{display:block;font-weight:400;color:var(--muted)}
+
+.hero h1{font-size:clamp(3rem,13vw,4.4rem);font-weight:800;letter-spacing:-.02em;color:var(--pri);line-height:.95;margin-top:10px}
+.hero .sub{font:600 1.3rem/1.25 var(--head);color:var(--ink);margin:10px 0 18px}
+.stack{display:grid;gap:10px;margin-top:22px}
+
+.btn{display:block;width:100%;min-height:54px;border:0;border-radius:10px;background:var(--pri);color:#fff;font-weight:700;font-size:1.05rem;cursor:pointer;padding:12px 18px;text-align:center;text-decoration:none}
+@media (prefers-color-scheme:dark){.btn{color:#0B1626}}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--pri);border:2px solid var(--pri)}
+.btn.acc{background:var(--acc);color:#fff}
+.btn.wa{background:#1F8F4E;color:#fff}
+.nav{display:flex;gap:10px;margin-top:28px}
+.nav .btn{flex:1}.nav .back{flex:0 0 auto;width:auto;background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:48px;border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 18px;cursor:pointer;font-weight:700}
+.chip[aria-pressed="true"]{border-color:var(--pri);background:var(--pri-soft);color:var(--ink)}
+.field{display:block;margin-top:6px}
+.field input,.field textarea{width:100%;min-height:52px;border:2px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px}
+.field textarea{min-height:80px}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:12px;border:2px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;margin-top:10px}
+.chk input{width:24px;height:24px;margin-top:1px;accent-color:var(--pri);flex:0 0 24px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:14px}
+.box p{margin:.4em 0}.box ol,.box ul{margin:.4em 0;padding-left:22px}.box li{margin:.25em 0}
+.pq{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px}
+.pq p{margin:0 0 10px;font-weight:700;color:var(--ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* testes */
+.timer{background:var(--ink);color:#fff;border-radius:16px;padding:18px;text-align:center;margin-top:16px}
+@media (prefers-color-scheme:dark){.timer{background:#0A1220}}
+.timer .t{font:800 clamp(3.6rem,18vw,5.4rem)/1 var(--head);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.timer .l{font-size:.9rem;opacity:.75;margin-top:4px}
+.timer .btn{margin-top:14px;background:var(--acc);color:#fff}
+.timer .btn.stop{background:#fff;color:var(--ink)}
+.tap{display:block;width:100%;min-height:140px;margin-top:12px;border:0;border-radius:14px;background:var(--acc);color:#fff;font:800 2.2rem var(--head);cursor:pointer;touch-action:manipulation}
+.tap[disabled]{opacity:.35}
+.count{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px}
+.count b{font:800 3.4rem var(--head);color:var(--ink);min-width:80px;text-align:center}
+.count button{width:56px;height:56px;border-radius:50%;border:2px solid var(--line);background:var(--surface);font-size:1.6rem;cursor:pointer}
+.stages{list-style:none;margin:14px 0 0;padding:0}
+.stages li{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:8px}
+.stages li.cur{border:2px solid var(--acc)}
+.stages i{font-style:normal;flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-weight:700}
+.stages li.ok i{background:var(--ok);color:#fff}.stages li.fail i{background:var(--bad);color:#fff}
+.stages span{flex:1}.stages span small{display:block;color:var(--muted);font-size:.85rem}
+.stages b{white-space:nowrap}
+.skip{margin-top:26px;padding-top:16px;border-top:1px dashed var(--line)}
+.warnbox{border-left:5px solid var(--acc);background:var(--surface);padding:12px 14px;border-radius:0 10px 10px 0;margin-top:14px;font-size:.95rem}
+
+/* resultado */
+.nivel{border-radius:16px;padding:22px 20px;color:#fff;margin-top:6px}
+.nivel h2{color:inherit;font-size:2.1rem}.nivel p{margin:.5em 0 0}
+.nivel.baixo{background:var(--baixo)}.nivel.moderado{background:var(--moderado);color:#2A1C00}.nivel.alto{background:var(--alto)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.tag.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.tag.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.tag.na{background:var(--line);color:var(--muted)}
+.list{margin:0;padding:0;list-style:none}
+.list li{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:10px;padding:12px 14px;margin-top:10px}
+.list li b{display:block;color:var(--ink)}
+h3{font-size:1.35rem;margin-top:28px}
+.code{font:800 2.2rem var(--head);letter-spacing:.08em;color:var(--pri);text-align:center;padding:10px;border:2px dashed var(--pri);border-radius:12px;margin:10px 0;user-select:all}
+.status{font-size:.85rem;color:var(--muted);text-align:center;margin-top:14px}
+.err{color:var(--bad);font-weight:700;margin-top:8px}
+.foot{font-size:.8rem;color:var(--muted);margin-top:30px}
+.print-only{display:none}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--text:#000;--ink:#000;padding:0}
+  body{font-size:12pt}
+  .bar,.no-print,section[data-step]:not([data-step="resultado"]){display:none!important}
+  section[data-step="resultado"]{display:block!important;padding:0}
+  .print-only{display:block}
+  .nivel{border:3px solid #000;color:#000!important;background:#fff!important}
+  .list li,.box{break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap"><strong id="brand">Passo Firme</strong><span id="inst"></span></div>
+  <div class="prog" aria-hidden="true"><i id="progbar"></i></div>
+</header>
+
+<main class="wrap">
+
+<!-- INÍCIO -->
+<section data-step="inicio" class="on hero">
+  <h1 id="h-nome" tabindex="-1">Passo Firme</h1>
+  <p class="sub" id="h-sub"></p>
+  <p>Aplicação guiada de uma triagem de quedas: perguntas sobre quedas e fatores de risco, três testes físicos com cronômetro e uma checagem da segurança da casa. No final, o app mostra o nível de risco, as orientações e o encaminhamento.</p>
+  <div class="two">
+    <label class="field"><span class="q" style="display:block;margin:10px 0 6px">Aplicador</span><input type="text" id="i-aplicador" maxlength="60" autocomplete="name" placeholder="Seu nome"></label>
+    <label class="field"><span class="q" style="display:block;margin:10px 0 6px">Local</span><input type="text" id="i-local" maxlength="60" placeholder="Grupo, UBS, bairro"></label>
+  </div>
+  <div class="stack">
+    <button class="btn" type="button" data-start="aval">Nova avaliação</button>
+    <button class="btn ghost" type="button" data-start="reav">Reavaliar (a pessoa tem um código)</button>
+  </div>
+  <p class="err" id="ini-err" aria-live="polite"></p>
+  <p class="foot">Material necessário: cronômetro (o próprio app), cadeira firme sem braços encostada na parede e uma marca no chão a 3 metros. Esta é uma triagem e não substitui a avaliação de um profissional de saúde.</p>
+</section>
+
+<!-- CÓDIGO (reavaliação) -->
+<section data-step="codigo">
+  <div class="kicker">Reavaliação</div>
+  <h2 tabindex="-1">Código da pessoa</h2>
+  <p class="lead">Digite o código entregue na primeira avaliação.</p>
+  <label class="field"><input type="text" id="i-codigo" maxlength="12" autocapitalize="characters" autocomplete="off" placeholder="QDA-XXXXX" aria-label="Código"></label>
+  <p class="err" id="cod-err" aria-live="polite"></p>
+  <div class="nav"><button class="btn back" type="button" data-go="inicio">Voltar</button><button class="btn" type="button" id="cod-ok">Continuar</button></div>
+</section>
+
+<!-- TERMO -->
+<section data-step="termo">
+  <div class="kicker">Antes de começar</div>
+  <h2 tabindex="-1">Consentimento</h2>
+  <div class="box">
+    <p>Explique à pessoa: esta triagem faz parte de um <b>projeto de extensão em Fisioterapia</b>, leva cerca de 15 minutos e ajuda a descobrir o risco de quedas e como preveni-las.</p>
+    <p>Não coletamos o nome. Os dados ficam guardados com um código e são usados apenas pela equipe do projeto.</p>
+    <p>Ela pode parar ou não fazer qualquer teste a qualquer momento.</p>
+  </div>
+  <label class="chk"><input type="checkbox" id="c-idade"><span>A pessoa tem 60 anos ou mais.</span></label>
+  <label class="chk"><input type="checkbox" id="c-aceite"><span>A pessoa (ou o responsável) foi informada e concordou em participar.</span></label>
+  <div class="nav"><button class="btn back" type="button" id="termo-back">Voltar</button><button class="btn" type="button" data-next="termo">Continuar</button></div>
+</section>
+
+<!-- PERFIL -->
+<section data-step="perfil">
+  <div class="kicker">Participante</div>
+  <h2 tabindex="-1">Dados básicos</h2>
+  <div class="two">
+    <label class="field"><span class="q" style="display:block;margin:10px 0 6px">Idade</span><input type="number" id="i-idade" inputmode="numeric" min="60" max="120"></label>
+    <label class="field"><span class="q" style="display:block;margin:10px 0 6px">Iniciais <small style="display:inline;font-weight:400;color:var(--muted)">opcional</small></span><input type="text" id="i-iniciais" maxlength="6" autocapitalize="characters" placeholder="M.S.A."></label>
+  </div>
+  <div class="q">Sexo <small>Usado na referência do teste de sentar e levantar</small></div><div id="ch-sexo"></div>
+  <div class="q">A equipe pode entrar em contato para acompanhamento?</div>
+  <label class="chk"><input type="checkbox" id="c-contato"><span>Sim, aceita contato por telefone ou WhatsApp.</span></label>
+  <label class="field" id="contato-wrap" hidden><input type="tel" id="i-contato" inputmode="tel" maxlength="20" placeholder="(DDD) número da pessoa ou de um familiar" aria-label="Telefone para contato"></label>
+  <div class="nav"><button class="btn back" type="button" data-go="termo">Voltar</button><button class="btn" type="button" data-next="perfil">Continuar</button></div>
+</section>
+
+<!-- TRIAGEM -->
+<section data-step="triagem">
+  <div class="kicker">Etapa 1 de 5</div>
+  <h2 tabindex="-1">Quedas e fatores de risco</h2>
+  <p class="lead">Leia as perguntas para a pessoa.</p>
+  <div class="pq"><p>Caiu nos últimos 12 meses?</p><div data-tri="queda12"></div></div>
+  <div id="queda-extra"></div>
+  <div id="tri-list"></div>
+  <div class="nav"><button class="btn back" type="button" data-go="perfil">Voltar</button><button class="btn" type="button" data-next="triagem">Continuar</button></div>
+</section>
+
+<!-- TUG -->
+<section data-step="tug">
+  <div class="kicker">Etapa 2 de 5 · Mobilidade</div>
+  <h2 tabindex="-1">Timed Up and Go</h2>
+  <div class="box"><ol>
+    <li>A pessoa começa sentada, com as costas apoiadas, numa cadeira firme encostada na parede. Marque 3 metros no chão.</li>
+    <li>Diga: "Quando eu disser <b>já</b>, levante, caminhe no seu passo normal até a marca, vire, volte e sente."</li>
+    <li>Inicie no "já" e pare quando ela sentar com as costas apoiadas.</li>
+  </ol><p>Ela pode usar a bengala ou o andador de costume. Caminhe ao lado dela durante o teste.</p></div>
+  <div class="timer"><div class="t" id="tug-disp">0,0</div><div class="l">segundos · referência: menos de 12 s</div><button class="btn" type="button" id="tug-btn">Iniciar</button></div>
+  <div class="two" style="margin-top:12px">
+    <label class="field"><span class="q" style="display:block;margin:8px 0 6px">Tempo (s)</span><input type="number" inputmode="decimal" step="0.1" id="tug-s" aria-label="Tempo do TUG em segundos"></label>
+    <div><span class="q" style="display:block;margin:8px 0 6px">&nbsp;</span><button class="btn ghost" type="button" id="tug-zero">Zerar</button></div>
+  </div>
+  <label class="chk"><input type="checkbox" id="tug-aux"><span>Usou bengala ou andador</span></label>
+  <div class="q">Observou durante a marcha? <small>Opcional</small></div><div id="ch-marcha"></div>
+  <div class="skip"><div class="q" style="margin-top:0">Não foi possível fazer o teste?</div><div id="st-tug"></div></div>
+  <div class="nav"><button class="btn back" type="button" data-go="triagem">Voltar</button><button class="btn" type="button" data-next="tug">Continuar</button></div>
+</section>
+
+<!-- SENTAR E LEVANTAR -->
+<section data-step="sl">
+  <div class="kicker">Etapa 3 de 5 · Força</div>
+  <h2 tabindex="-1">Sentar e levantar em 30 segundos</h2>
+  <div class="box"><ol>
+    <li>Cadeira sem braços, com cerca de 43 cm de altura, encostada na parede.</li>
+    <li>A pessoa senta no meio da cadeira, pés apoiados no chão e braços cruzados no peito.</li>
+    <li>Ao "já", ela levanta completamente e senta de novo, o máximo de vezes que conseguir em 30 segundos.</li>
+    <li>Toque no botão laranja a cada vez que ela <b>ficar totalmente em pé</b>.</li>
+  </ol><p>Se precisar usar as mãos para levantar, o resultado é zero.</p></div>
+  <div class="timer"><div class="t" id="sl-disp">30</div><div class="l" id="sl-ref">segundos restantes</div><button class="btn" type="button" id="sl-btn">Iniciar 30 s</button></div>
+  <button class="tap" type="button" id="sl-tap" disabled>+1 em pé</button>
+  <div class="count"><button type="button" id="sl-menos" aria-label="Tirar uma repetição">−</button><b id="sl-n">0</b><button type="button" id="sl-mais" aria-label="Somar uma repetição">+</button></div>
+  <label class="chk"><input type="checkbox" id="sl-bracos"><span>Precisou usar as mãos ou os braços para levantar (resultado zero)</span></label>
+  <div class="skip"><div class="q" style="margin-top:0">Não foi possível fazer o teste?</div><div id="st-sl"></div></div>
+  <div class="nav"><button class="btn back" type="button" data-go="tug">Voltar</button><button class="btn" type="button" data-next="sl">Continuar</button></div>
+</section>
+
+<!-- EQUILÍBRIO -->
+<section data-step="eq">
+  <div class="kicker">Etapa 4 de 5 · Equilíbrio</div>
+  <h2 tabindex="-1">Equilíbrio em 4 posições</h2>
+  <div class="box"><p>Demonstre cada posição. A pessoa fica sem apoio, sem bengala ou andador, por <b>10 segundos</b>. Fique ao lado, pronto para segurar. Se ela não conseguir manter uma posição, o teste termina ali.</p></div>
+  <ul class="stages" id="eq-list"></ul>
+  <div class="timer" id="eq-timer"><div class="t" id="eq-disp">0,0</div><div class="l" id="eq-lbl">segundos</div><button class="btn" type="button" id="eq-btn">Iniciar</button></div>
+  <button class="btn ghost" type="button" id="eq-reset" style="margin-top:10px">Refazer o teste</button>
+  <div class="skip"><div class="q" style="margin-top:0">Não foi possível fazer o teste?</div><div id="st-eq"></div></div>
+  <div class="nav"><button class="btn back" type="button" data-go="sl">Voltar</button><button class="btn" type="button" data-next="eq">Continuar</button></div>
+</section>
+
+<!-- CASA -->
+<section data-step="casa">
+  <div class="kicker">Etapa 5 de 5</div>
+  <h2 tabindex="-1">Segurança da casa</h2>
+  <p class="lead">Pergunte à pessoa sobre a casa dela.</p>
+  <div id="casa-list"></div>
+  <div class="q">Observações do aplicador <small>Opcional</small></div>
+  <label class="field"><textarea id="i-obs" maxlength="400" aria-label="Observações"></textarea></label>
+  <div class="nav"><button class="btn back" type="button" data-go="eq">Voltar</button><button class="btn acc" type="button" id="enviar">Ver resultado</button></div>
+</section>
+
+<!-- RESULTADO -->
+<section data-step="resultado"><div id="res"></div></section>
+
+</main>
+
+<script>
+const C=window.QUEDAS_CONFIG||{},D=window.QUEDAS_DADOS;
+const API_OK=C.API_URL&&/^https:\/\/script\.google\.com\//.test(C.API_URL);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f1=v=>v==null||v===''?'—':(Math.round(v*10)/10).toLocaleString('pt-BR');
+document.title=C.NOME_PROJETO||'Passo Firme';
+$('#brand').textContent=$('#h-nome').textContent=C.NOME_PROJETO||'Passo Firme';
+$('#h-sub').textContent=C.SUBTITULO||'';$('#inst').textContent=C.INSTITUICAO||'';
+
+/* aplicador e local ficam lembrados no aparelho */
+try{$('#i-aplicador').value=localStorage.getItem('pf-aplicador')||'';$('#i-local').value=localStorage.getItem('pf-local')||''}catch(e){}
+
+let A;
+function novo(fluxo){
+  A={fluxo,codigo:'',ant:null,idade:'',iniciais:'',sexo:'',aceitaContato:false,contato:'',tri:{},
+     tug:{s:null,status:'',aux:false,marcha:[]},sl:{reps:0,status:'',bracos:false,iniciado:false},
+     eq:{t:[null,null,null,null],i:0,fim:false,status:''},casa:{},obs:''};
+}
+novo('aval');
+function limparForm(){
+  ['#i-codigo','#i-idade','#i-iniciais','#i-contato','#tug-s','#i-obs'].forEach(q=>$(q).value='');
+  ['#c-idade','#c-aceite','#c-contato','#tug-aux','#sl-bracos'].forEach(q=>$(q).checked=false);
+  $('#contato-wrap').hidden=true;$('#cod-err').textContent='';$('#tug-disp').textContent='0,0';
+  pararTudo();renderSL();renderEQ();
+}
+
+/* ---------- navegação ---------- */
+const ORDEM={aval:['inicio','termo','perfil','triagem','tug','sl','eq','casa','resultado'],reav:['inicio','codigo','termo','perfil','triagem','tug','sl','eq','casa','resultado']};
+const PROX={termo:'perfil',perfil:'triagem',triagem:'tug',tug:'sl',sl:'eq',eq:'casa'};
+function go(step){
+  pararTudo();
+  $$('section[data-step]').forEach(s=>s.classList.toggle('on',s.dataset.step===step));
+  const o=ORDEM[A.fluxo],i=o.indexOf(step);
+  $('#progbar').style.width=step==='inicio'?'0':Math.round(i/(o.length-1)*100)+'%';
+  if(step==='triagem')renderTri();
+  if(step==='casa')renderCasa();
+  if(step==='sl')renderSL();
+  if(step==='eq')renderEQ();
+  window.scrollTo(0,0);
+  const h=$(`section[data-step="${step}"] [tabindex="-1"]`);if(h)h.focus({preventScroll:true});
+  validar();
+}
+
+/* ---------- chips genéricos ---------- */
+function chipsHTML(grupo,chave,opts,atual,multi){
+  return `<div class="chips" role="group">${opts.map(([v,t])=>`<button type="button" class="chip" data-g="${grupo}" data-k="${chave}" data-v="${v}" ${multi?'data-multi="1"':''} aria-pressed="${multi?(atual||[]).includes(v):atual===v}">${t}</button>`).join('')}</div>`;
+}
+const SN=[['sim','Sim'],['nao','Não']];
+const MOTIVOS=[['nao_consegue','Não conseguiu fazer'],['seguranca','Inseguro fazer'],['recusou','Recusou ou outro motivo']];
+function setChip(g,k,v,multi){
+  const alvo={a:A,tri:A.tri,casa:A.casa,tug:A.tug,sl:A.sl,eq:A.eq}[g];
+  if(multi){const arr=alvo[k]||[];alvo[k]=arr.includes(v)?arr.filter(x=>x!==v):[...arr,v]}
+  else alvo[k]=(alvo[k]===v&&['status'].includes(k))?'':v; // motivo pode ser desmarcado
+  $$(`[data-g="${g}"][data-k="${k}"]`).forEach(b=>b.setAttribute('aria-pressed',multi?alvo[k].includes(b.dataset.v):alvo[k]===b.dataset.v));
+}
+$('#ch-sexo').innerHTML=chipsHTML('a','sexo',[['F','Feminino'],['M','Masculino']],'');
+$('#ch-marcha').innerHTML=chipsHTML('tug','marcha',D.MARCHA,[],true);
+$('#st-tug').innerHTML=chipsHTML('tug','status',MOTIVOS,'');
+$('#st-sl').innerHTML=chipsHTML('sl','status',MOTIVOS,'');
+$('#st-eq').innerHTML=chipsHTML('eq','status',MOTIVOS,'');
+
+/* ---------- triagem ---------- */
+function renderTri(){
+  $('[data-tri="queda12"]').innerHTML=chipsHTML('tri','queda12',SN,A.tri.queda12);
+  $('#queda-extra').innerHTML=A.tri.queda12==='sim'?`
+    <div class="pq"><p>Quantas vezes caiu?</p>${chipsHTML('tri','quedas_n',[['1','Uma vez'],['2+','Duas ou mais']],A.tri.quedas_n)}</div>
+    <div class="pq"><p>Machucou-se em alguma dessas quedas?</p>${chipsHTML('tri','queda_lesao',SN,A.tri.queda_lesao)}</div>`:'';
+  $('#tri-list').innerHTML=D.TRIAGEM.map(q=>`<div class="pq"><p>${q.t}</p>${chipsHTML('tri',q.id,SN,A.tri[q.id])}</div>`).join('');
+}
+function renderCasa(){
+  $('#casa-list').innerHTML=D.CASA.map(q=>`<div class="pq"><p>${q.t}</p>${chipsHTML('casa',q.id,[...SN,...(q.na?[['na','Não se aplica']]:[])],A.casa[q.id])}</div>`).join('');
+}
+
+/* ---------- som e vibração ---------- */
+let ac=null;
+function prepSom(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
+function bip(f=880,d=.35){try{if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.35,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.start();o.stop(ac.currentTime+d)}catch(e){}try{navigator.vibrate&&navigator.vibrate(250)}catch(e){}}
+const fmt=s=>s.toFixed(1).replace('.',',');
+
+/* ---------- TUG ---------- */
+let tugRun=null;
+function pararTudo(){if(tugRun){cancelAnimationFrame(tugRun.raf);tugRun=null;$('#tug-btn').textContent='Iniciar';$('#tug-btn').classList.remove('stop')}
+  if(slRun){clearInterval(slRun.iv);slRun=null;$('#sl-tap').disabled=true}if(eqRun){cancelAnimationFrame(eqRun.raf);eqRun=null}}
+$('#tug-btn').addEventListener('click',()=>{
+  prepSom();
+  if(!tugRun){
+    const t0=performance.now();tugRun={t0};
+    const loop=()=>{$('#tug-disp').textContent=fmt((performance.now()-t0)/1000);tugRun.raf=requestAnimationFrame(loop)};loop();
+    $('#tug-btn').textContent='Parar';$('#tug-btn').classList.add('stop');bip(660,.15);
+  }else{
+    const s=Math.round((performance.now()-tugRun.t0)/100)/10;cancelAnimationFrame(tugRun.raf);tugRun=null;
+    $('#tug-disp').textContent=fmt(s);$('#tug-btn').textContent='Iniciar';$('#tug-btn').classList.remove('stop');
+    A.tug.s=s;$('#tug-s').value=s;if(A.tug.status)setChip('tug','status',A.tug.status);validar();
+  }
+});
+$('#tug-zero').addEventListener('click',()=>{pararTudo();A.tug.s=null;$('#tug-s').value='';$('#tug-disp').textContent='0,0';validar()});
+
+/* ---------- sentar e levantar ---------- */
+let slRun=null;
+function slRef(){
+  const tab=D.SL_REF[A.sexo];const id=+A.idade;if(!tab||!id)return null;
+  let r=tab[0][1];tab.forEach(([a,v])=>{if(id>=a)r=v});return r;
+}
+function renderSL(){
+  $('#sl-n').textContent=A.sl.reps;$('#sl-bracos').checked=A.sl.bracos;
+  const r=slRef();$('#sl-ref').textContent=r?`segundos restantes · referência: ${r} ou mais`:'segundos restantes';
+  if(!slRun)$('#sl-disp').textContent='30';
+}
+$('#sl-btn').addEventListener('click',()=>{
+  prepSom();
+  if(slRun){clearInterval(slRun.iv);slRun=null;$('#sl-tap').disabled=true;$('#sl-btn').textContent='Iniciar 30 s';return}
+  A.sl.reps=0;A.sl.iniciado=true;renderSL();
+  const fim=performance.now()+30000;$('#sl-tap').disabled=false;$('#sl-btn').textContent='Cancelar';bip(660,.15);
+  slRun={iv:setInterval(()=>{const r=Math.max(0,Math.ceil((fim-performance.now())/1000));$('#sl-disp').textContent=r;
+    if(r<=0){clearInterval(slRun.iv);slRun=null;$('#sl-tap').disabled=true;$('#sl-btn').textContent='Iniciar 30 s';bip(880,.8);validar()}},100)};
+  validar();
+});
+$('#sl-tap').addEventListener('click',()=>{A.sl.reps++;$('#sl-n').textContent=A.sl.reps});
+$('#sl-mais').addEventListener('click',()=>{A.sl.reps++;A.sl.iniciado=true;$('#sl-n').textContent=A.sl.reps;validar()});
+$('#sl-menos').addEventListener('click',()=>{A.sl.reps=Math.max(0,A.sl.reps-1);$('#sl-n').textContent=A.sl.reps});
+
+/* ---------- equilíbrio ---------- */
+let eqRun=null;
+function renderEQ(){
+  const e=A.eq;
+  $('#eq-list').innerHTML=D.ESTAGIOS.map(([n,d],i)=>{const t=e.t[i];const st=t==null?'':t>=10?'ok':'fail';
+    return `<li class="${st} ${!e.fim&&i===e.i?'cur':''}"><i>${i+1}</i><span>${n}<small>${d}</small></span><b>${t==null?(e.fim&&i>e.i?'não testado':''):fmt(t)+' s'}</b></li>`}).join('');
+  $('#eq-timer').hidden=e.fim;
+  if(!e.fim){$('#eq-lbl').textContent=`${D.ESTAGIOS[e.i][0]} · manter 10 segundos`;if(!eqRun){$('#eq-disp').textContent='0,0';$('#eq-btn').textContent='Iniciar';$('#eq-btn').classList.remove('stop')}}
+}
+$('#eq-btn').addEventListener('click',()=>{
+  prepSom();const e=A.eq;
+  if(!eqRun){
+    const t0=performance.now();eqRun={t0};$('#eq-btn').textContent='Perdeu o equilíbrio / apoiou';$('#eq-btn').classList.add('stop');bip(660,.15);
+    const loop=()=>{const s=(performance.now()-t0)/1000;
+      if(s>=10){cancelAnimationFrame(eqRun.raf);eqRun=null;e.t[e.i]=10;bip(880,.5);e.i++;if(e.i>3){e.fim=true;e.i=3}renderEQ();validar();return}
+      $('#eq-disp').textContent=fmt(s);eqRun.raf=requestAnimationFrame(loop)};loop();
+  }else{
+    const s=Math.round((performance.now()-eqRun.t0)/100)/10;cancelAnimationFrame(eqRun.raf);eqRun=null;
+    e.t[e.i]=Math.min(s,9.9);e.fim=true;renderEQ();validar();
+  }
+});
+$('#eq-reset').addEventListener('click',()=>{pararTudo();A.eq.t=[null,null,null,null];A.eq.i=0;A.eq.fim=false;renderEQ();validar()});
+
+/* ---------- validação ---------- */
+function valido(s){
+  if(s==='termo')return $('#c-idade').checked&&$('#c-aceite').checked;
+  if(s==='perfil')return +A.idade>=60&&+A.idade<=120&&A.sexo;
+  if(s==='triagem'){if(!A.tri.queda12)return false;if(A.tri.queda12==='sim'&&!(A.tri.quedas_n&&A.tri.queda_lesao))return false;return D.TRIAGEM.every(q=>A.tri[q.id])}
+  if(s==='tug')return !!A.tug.status||(A.tug.s>0);
+  if(s==='sl')return !!A.sl.status||(A.sl.iniciado&&!slRun);
+  if(s==='eq')return !!A.eq.status||A.eq.fim;
+  return true;
+}
+function validar(){$$('[data-next]').forEach(b=>b.disabled=!valido(b.dataset.next));$('#enviar').disabled=!D.CASA.every(q=>A.casa[q.id])}
+
+/* ---------- eventos gerais ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.start){
+    const ap=$('#i-aplicador').value.trim();if(!ap){$('#ini-err').textContent='Informe o nome do aplicador.';$('#i-aplicador').focus();return}
+    $('#ini-err').textContent='';try{localStorage.setItem('pf-aplicador',ap);localStorage.setItem('pf-local',$('#i-local').value.trim())}catch(err){}
+    novo(b.dataset.start);limparForm();go(b.dataset.start==='reav'?'codigo':'termo');return}
+  if(b.dataset.go){go(b.dataset.go);return}
+  if(b.dataset.next){const s=b.dataset.next;if(valido(s))go(PROX[s]);return}
+  if(b.dataset.g){setChip(b.dataset.g,b.dataset.k,b.dataset.v,!!b.dataset.multi);if(b.dataset.k==='queda12')renderTri();validar();return}
+  if(b.id==='nova'){go('inicio');return}
+  if(b.id==='imprimir'){window.print();return}
+});
+$('#termo-back').addEventListener('click',()=>go(A.fluxo==='reav'?'codigo':'inicio'));
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='i-idade'){A.idade=t.value;renderSL()}
+  if(t.id==='i-iniciais')A.iniciais=t.value;if(t.id==='i-contato')A.contato=t.value;if(t.id==='i-obs')A.obs=t.value;
+  if(t.id==='tug-s'){const v=parseFloat(t.value.replace(',','.'));A.tug.s=v>0?v:null}
+  validar();
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='c-contato'){A.aceitaContato=t.checked;$('#contato-wrap').hidden=!t.checked}
+  if(t.id==='tug-aux')A.tug.aux=t.checked;
+  if(t.id==='sl-bracos')A.sl.bracos=t.checked;
+  validar();
+});
+
+/* ---------- reavaliação ---------- */
+$('#cod-ok').addEventListener('click',async()=>{
+  let c=$('#i-codigo').value.trim().toUpperCase().replace(/\s/g,'');if(c&&!c.startsWith('QDA-'))c='QDA-'+c.replace(/^QDA/,'');
+  if(!/^QDA-[A-Z0-9]{5}$/.test(c)){$('#cod-err').textContent='O código tem o formato QDA- seguido de 5 letras ou números.';return}
+  $('#cod-err').textContent='';A.codigo=c;
+  if(API_OK){
+    const b=$('#cod-ok');b.disabled=true;b.textContent='Buscando…';
+    try{const r=await fetch(`${C.API_URL}?action=codigo&c=${encodeURIComponent(c)}`);const j=await r.json();
+      if(j.ok&&!j.existe){$('#cod-err').textContent='Não encontramos esse código. Confira as letras e os números.';b.disabled=false;b.textContent='Continuar';return}
+      if(j.ant){A.ant=j.ant;A.sexo=j.ant.sexo||'';A.iniciais=j.ant.iniciais||'';$('#i-iniciais').value=A.iniciais;
+        $$('[data-g="a"][data-k="sexo"]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===A.sexo))}
+    }catch(err){/* sem internet: segue sem comparação */}
+    b.disabled=false;b.textContent='Continuar';
+  }
+  go('termo');
+});
+
+/* ---------- cálculo do risco ---------- */
+function calc(){
+  const t=A.tri,naoFez=s=>s==='nao_consegue'||s==='seguranca';
+  const triPos=t.queda12==='sim'||t.instavel==='sim'||t.medo==='sim';
+  const ref=slRef();
+  const tugAlt=A.tug.status?(naoFez(A.tug.status)?true:null):A.tug.s>=12;
+  const slAlt=A.sl.status?(naoFez(A.sl.status)?true:null):(A.sl.bracos?true:A.sl.reps<ref);
+  const e=A.eq.t,tandemOk=e[0]>=10&&e[1]>=10&&e[2]>=10;
+  const eqAlt=A.eq.status?(naoFez(A.eq.status)?true:null):!tandemOk;
+  const uni5=!A.eq.status&&e[3]!=null&&e[3]<5;
+  const nAlt=[tugAlt,slAlt,eqAlt].filter(x=>x===true).length;
+  const quedaGrave=t.queda12==='sim'&&(t.quedas_n==='2+'||t.queda_lesao==='sim');
+  const risco=(quedaGrave||(triPos&&nAlt>=1)||nAlt>=2)?'alto':(triPos||nAlt>=1)?'moderado':'baixo';
+  const incompleto=[tugAlt,slAlt,eqAlt].some(x=>x===null);
+  return {triPos,ref,tugAlt,slAlt,eqAlt,uni5,nAlt,quedaGrave,risco,incompleto,reps:A.sl.bracos?0:A.sl.reps};
+}
+
+/* ---------- envio com fila offline ---------- */
+const FILA='passofirme-fila';
+const lerFila=()=>{try{return JSON.parse(localStorage.getItem(FILA)||'[]')}catch(e){return[]}};
+const gravarFila=f=>{try{localStorage.setItem(FILA,JSON.stringify(f))}catch(e){}};
+async function post(p){const r=await fetch(C.API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const j=await r.json();if(!j.ok)throw new Error(j.erro);return j}
+async function enviar(p){if(!API_OK)return 'demo';try{await post(p);return 'ok'}catch(e){const f=lerFila();f.push(p);gravarFila(f);return 'fila'}}
+async function esvaziarFila(){if(!API_OK)return;const f=lerFila();if(!f.length)return;const resto=[];for(const p of f){try{await post(p)}catch(e){resto.push(p)}}gravarFila(resto)}
+esvaziarFila();window.addEventListener('online',esvaziarFila);
+function gerarCodigo(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';crypto.getRandomValues(new Uint8Array(5)).forEach(n=>s+=a[n%a.length]);return 'QDA-'+s}
+const sn=v=>v?'sim':'nao';
+
+$('#enviar').addEventListener('click',async()=>{
+  const b=$('#enviar');b.disabled=true;b.textContent='Enviando…';
+  if(A.fluxo==='aval')A.codigo=gerarCodigo();
+  const r=calc(),e=A.eq.t;
+  const p={tipo:A.fluxo==='reav'?'reavaliacao':'avaliacao',codigo:A.codigo,aplicador:$('#i-aplicador').value.trim(),local:$('#i-local').value.trim(),
+    iniciais:A.iniciais.trim(),idade:+A.idade,sexo:A.sexo,
+    queda12:A.tri.queda12,quedas_n:A.tri.quedas_n||'',queda_lesao:A.tri.queda_lesao||'',...Object.fromEntries(D.TRIAGEM.map(q=>[q.id,A.tri[q.id]])),
+    tug_s:A.tug.status?'':A.tug.s,tug_status:A.tug.status||'feito',tug_auxilio:sn(A.tug.aux),tug_marcha:(A.tug.marcha||[]).join(', '),
+    sl_reps:A.sl.status?'':r.reps,sl_status:A.sl.status||'feito',sl_bracos:sn(A.sl.bracos),sl_ref:r.ref,
+    eq_e1:A.eq.status?'':e[0]??'',eq_e2:A.eq.status?'':e[1]??'',eq_e3:A.eq.status?'':e[2]??'',eq_e4:A.eq.status?'':e[3]??'',eq_status:A.eq.status||'feito',
+    ...Object.fromEntries(D.CASA.map(q=>[q.id,A.casa[q.id]])),
+    triagem_positiva:sn(r.triPos),tug_alterado:r.tugAlt==null?'':sn(r.tugAlt),sl_alterado:r.slAlt==null?'':sn(r.slAlt),eq_alterado:r.eqAlt==null?'':sn(r.eqAlt),
+    unipodal_menor5:sn(r.uni5),n_alterados:r.nAlt,risco:r.risco,aceita_contato:sn(A.aceitaContato),contato:A.aceitaContato?A.contato.trim():'',obs:A.obs.trim()};
+  const st=await enviar(p);
+  $('#res').innerHTML=resultadoHTML(r)+`<p class="status no-print">${{ok:'Dados enviados.',fila:'Sem internet agora: os dados ficaram guardados neste aparelho e serão enviados depois.',demo:'Modo demonstração: os dados não foram enviados (configure a API no config.js).'}[st]}</p>`;
+  b.disabled=false;b.textContent='Ver resultado';
+  go('resultado');
+});
+
+/* ---------- resultado ---------- */
+function resultadoHTML(r){
+  const T={
+    baixo:['Risco baixo de quedas','Os testes e as respostas não mostraram sinais importantes de risco. Manter-se ativo é a melhor prevenção.','Reavaliar em 12 meses, ou antes se houver uma queda.'],
+    moderado:['Risco moderado de quedas','Há sinais de risco que podem melhorar com exercícios de força e equilíbrio e com ajustes na casa.','Participar de um programa de exercícios de força e equilíbrio e reavaliar em 6 meses.'],
+    alto:['Risco alto de quedas','A pessoa precisa de uma avaliação mais completa com fisioterapeuta e médico.','Encaminhar para avaliação na UBS e com fisioterapeuta o quanto antes. Reavaliar em 3 meses.']
+  }[r.risco];
+  const tag=(alt)=>alt==null?'<span class="tag na">Não realizado</span>':alt?'<span class="tag bad">Alterado</span>':'<span class="tag ok">Adequado</span>';
+  const e=A.eq.t,est=A.eq.status?'—':(e[2]>=10?'Manteve o tandem':'Não manteve o tandem')+(e[3]!=null?` · uma perna ${fmt(e[3])} s`:'');
+  const ant=A.ant;
+  const comp=ant?`<h3>Comparação com a avaliação anterior${ant.data?` (${esc(ant.data)})`:''}</h3>
+    <table><thead><tr><th></th><th>Antes</th><th>Agora</th></tr></thead><tbody>
+    <tr><td>Nível de risco</td><td>${esc(ant.risco||'—')}</td><td>${r.risco}</td></tr>
+    <tr><td>Timed Up and Go</td><td>${f1(ant.tug_s)} s</td><td>${A.tug.status?'—':f1(A.tug.s)+' s'}</td></tr>
+    <tr><td>Sentar e levantar</td><td>${ant.sl_reps===''||ant.sl_reps==null?'—':esc(ant.sl_reps)}</td><td>${A.sl.status?'—':r.reps}</td></tr>
+    <tr><td>Apoio em uma perna</td><td>${ant.eq_e4===''||ant.eq_e4==null?'—':f1(ant.eq_e4)+' s'}</td><td>${e[3]==null||A.eq.status?'—':fmt(e[3])+' s'}</td></tr>
+    </tbody></table>`:'';
+
+  const orient=[];
+  if(r.risco==='alto')orient.push(['Exercício com acompanhamento','Faça exercícios de força e equilíbrio com orientação de um fisioterapeuta, pelo menos 2 vezes por semana. Não comece sozinho exercícios de equilíbrio.']);
+  else orient.push(['Exercícios de força e equilíbrio','Pelo menos 2 a 3 vezes por semana, de preferência em grupo e com orientação. Em casa, sempre com um apoio firme ao lado (pia ou encosto de cadeira).'],
+    ['Sentar e levantar','Numa cadeira firme, levante e sente devagar, 10 vezes, com as mãos à frente do corpo. Use as mãos se precisar.'],
+    ['Ponta dos pés','Segurando na pia, suba na ponta dos pés e desça devagar, 10 vezes.']);
+  D.TRIAGEM.forEach(q=>{if(A.tri[q.id]==='sim'&&D.ORIENT_TRIAGEM[q.id])orient.push([q.t.replace(/\?$/,''),D.ORIENT_TRIAGEM[q.id]])});
+  const casa=D.CASA.filter(q=>{const v=A.casa[q.id];return v&&v!=='na'&&v!==q.bom});
+  const wa=C.WHATSAPP?`<a class="btn wa no-print" href="https://wa.me/${encodeURIComponent(C.WHATSAPP)}?text=${encodeURIComponent('Olá! Fiz a triagem do '+(C.NOME_PROJETO||'Passo Firme')+'. Código: '+A.codigo)}" target="_blank" rel="noopener">Falar com a equipe</a>`:'';
+
+  return `<div class="print-only"><h2>${esc(C.NOME_PROJETO||'Passo Firme')}</h2><p>${esc(C.SUBTITULO||'')} · ${new Date().toLocaleDateString('pt-BR')}${A.iniciais?' · '+esc(A.iniciais):''} · ${esc(A.idade)} anos</p></div>
+  <div class="nivel ${r.risco}"><h2>${T[0]}</h2><p>${T[1]}</p></div>
+  ${r.incompleto?'<div class="warnbox">Um ou mais testes não foram realizados por recusa. O resultado considera só o que foi avaliado.</div>':''}
+  <div class="box"><b>Encaminhamento</b><p>${T[2]}</p>${r.risco!=='baixo'&&C.ENCAMINHAMENTO?`<p>${esc(C.ENCAMINHAMENTO)}</p>`:''}</div>
+  <h3>Resultado dos testes</h3>
+  <table><thead><tr><th>Teste</th><th>Resultado</th><th></th></tr></thead><tbody>
+    <tr><td>Quedas no último ano</td><td>${A.tri.queda12==='sim'?(A.tri.quedas_n==='2+'?'2 ou mais':'1')+(A.tri.queda_lesao==='sim'?', com lesão':''):'Nenhuma'}</td><td>${A.tri.queda12==='sim'?'<span class="tag bad">Sim</span>':'<span class="tag ok">Não</span>'}</td></tr>
+    <tr><td>Timed Up and Go <small>(menos de 12 s)</small></td><td>${A.tug.status?'—':fmt(A.tug.s)+' s'}${A.tug.aux?' com auxílio':''}</td><td>${tag(r.tugAlt)}</td></tr>
+    <tr><td>Sentar e levantar 30 s <small>(${r.ref??'—'} ou mais)</small></td><td>${A.sl.status?'—':r.reps+' vezes'}</td><td>${tag(r.slAlt)}</td></tr>
+    <tr><td>Equilíbrio em 4 posições <small>(tandem 10 s)</small></td><td>${est}</td><td>${tag(r.eqAlt)}</td></tr>
+  </tbody></table>
+  ${r.uni5?'<div class="warnbox">Não conseguiu ficar 5 segundos apoiado em uma perna, o que está associado a quedas com lesão.</div>':''}
+  ${comp}
+  <h3>Orientações</h3><ul class="list">${orient.map(([n,t])=>`<li><b>${esc(n)}</b>${esc(t)}</li>`).join('')}</ul>
+  ${casa.length?`<h3>Ajustes na casa</h3><ul class="list">${casa.map(q=>`<li>${esc(q.dica)}</li>`).join('')}</ul>`:''}
+  <h3>Se cair</h3><div class="box"><p>Fique calmo e não levante de uma vez. Veja se consegue se mexer sem dor forte. Role de lado, fique de quatro apoios, arraste-se até uma cadeira firme e apoie-se nela para levantar. Se não conseguir ou sentir dor forte, peça ajuda e ligue 192 (SAMU). Deixe o telefone sempre ao alcance.</p></div>
+  <div class="box"><b>Código de acompanhamento</b><div class="code">${A.codigo}</div>Guarde este código para a próxima avaliação.</div>
+  <div class="stack no-print"><button class="btn" type="button" id="imprimir">Imprimir folha para a pessoa</button>${wa}<button class="btn ghost" type="button" id="nova">Nova avaliação</button></div>
+  <p class="foot">Triagem baseada na iniciativa STEADI (CDC). Não substitui a avaliação de um profissional de saúde.</p>`;
+}
+</script>
+</body>
+</html>
