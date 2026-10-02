@@ -3,8 +3,7 @@
    ============================================================ */
 window.QUEDAS_CONFIG = {
   // URL do app da Web do Apps Script (termina em /exec)
-  API_URL: 'https://script.google.com/macros/s/AKfycbxmiccNO2AfRUJQuiRdeS9IfOHCWc0Bnp0-a6JCEecMsmxNCGXP_C-Hi1ivnZ2DFtsG/exec',
-
+  API_URL: 'https://script.google.com/macros/s/AKfycbyqcIJ5ODxd_YlVaE5w9Ehcf-JhGw_ZZjrfry-FgwjYomarsrP_5Ly5IZgfuX8nph_T/exec',
   NOME_PROJETO: 'Passo Firme',
   SUBTITULO: 'Triagem de risco de quedas em pessoas idosas',
   INSTITUICAO: 'Cruzeiro do Sul - Fisioterapia',
