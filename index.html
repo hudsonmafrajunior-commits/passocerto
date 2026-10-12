@@ -95,7 +95,10 @@ h2{font-size:1.85rem;font-weight:800;margin-bottom:8px}
 /* resultado */
 .nivel{border-radius:16px;padding:22px 20px;color:#fff;margin-top:6px}
 .nivel h2{color:inherit;font-size:2.1rem}.nivel p{margin:.5em 0 0}
-.nivel.baixo{background:var(--baixo)}.nivel.moderado{background:var(--moderado);color:#2A1C00}.nivel.alto{background:var(--alto)}
+.nivel.baixo{background:var(--baixo)}.nivel.moderado{background:var(--moderado);color:#2A1C00}.nivel.alto{background:#1F4E8C;color:#fff}
+.nivel .classif{font-size:.85rem;opacity:.85;margin-top:10px}
+.box.calma{border-left:5px solid var(--ok)}
+.tag.warn{background:color-mix(in srgb,var(--moderado) 22%,transparent);color:var(--ink)}
 table{border-collapse:collapse;width:100%;font-size:.95rem}
 th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{font-size:.8rem;color:var(--muted)}
@@ -561,12 +564,12 @@ $('#enviar').addEventListener('click',async()=>{
 /* ---------- resultado ---------- */
 function resultadoHTML(r){
   const T={
-    baixo:['Risco baixo de quedas','Os testes e as respostas não mostraram sinais importantes de risco. Manter-se ativo é a melhor prevenção.','Reavaliar em 12 meses, ou antes se houver uma queda.'],
-    moderado:['Risco moderado de quedas','Há sinais de risco que podem melhorar com exercícios de força e equilíbrio e com ajustes na casa.','Participar de um programa de exercícios de força e equilíbrio e reavaliar em 6 meses.'],
-    alto:['Risco alto de quedas','A pessoa precisa de uma avaliação mais completa com fisioterapeuta e médico.','Encaminhar para avaliação na UBS e com fisioterapeuta o quanto antes. Reavaliar em 3 meses.']
+    baixo:['Seu equilíbrio está em dia','Os testes mostraram um bom resultado. Continue se movimentando: caminhar, dançar e fazer exercícios mantém o corpo firme por mais tempo.','Faça uma nova triagem daqui a 1 ano para acompanhar.','Classificação da triagem: risco baixo'],
+    moderado:['Alguns pontos para cuidar','Encontramos alguns pontos que podem melhorar. A boa notícia é que exercícios simples de força e equilíbrio e pequenos ajustes em casa fazem muita diferença.','Se puder, participe de um grupo de exercícios para pessoas idosas. Faça uma nova triagem daqui a 6 meses para ver sua evolução.','Classificação da triagem: risco moderado'],
+    alto:['Vale uma atenção especial','Alguns resultados mostram que vale cuidar com mais atenção da força e do equilíbrio. Isso é comum com a idade e tem tratamento: com acompanhamento, a maioria das pessoas melhora bastante.','Na sua próxima ida à Unidade Básica de Saúde (UBS), mostre esta folha. Com calma, combine com a equipe uma avaliação com fisioterapeuta para montar exercícios sob medida. Faça uma nova triagem daqui a 3 meses.','Classificação da triagem: risco alto']
   }[r.risco];
   const I=window.ILU,ic=(n,t)=>I?I.icone(n,t):'';
-  const tag=(alt)=>alt==null?'<span class="tag na">Não realizado</span>':alt?'<span class="tag bad">Alterado</span>':'<span class="tag ok">Adequado</span>';
+  const tag=(alt)=>alt==null?'<span class="tag na">Não realizado</span>':alt?'<span class="tag warn">Pode melhorar</span>':'<span class="tag ok">Bom resultado</span>';
   const e=A.eq.t,ant=A.ant;
 
   // cartões dos testes, com barras de referência
@@ -580,7 +583,7 @@ function resultadoHTML(r){
   const eqCard=`<div class="teste"><header><b>${ic('eq')}Equilíbrio em 4 posições</b>${tag(r.eqAlt)}</header>
     <div class="pes-linha">${D.ESTAGIOS.map(([n],i)=>{const t=A.eq.status?null:e[i];const st=t==null?'':t>=10?'ok':'fail';
       return `<div>${I?I.pes(i,st,46):''}<b>${t==null?'—':fmt(t)+' s'}</b>${n}</div>`}).join('')}</div>
-    ${r.uni5?'<p class="note" style="margin:8px 0 0;font-size:.85rem;color:var(--bad);font-weight:700">Menos de 5 s em uma perna: associado a quedas com lesão.</p>':''}</div>`;
+    ${r.uni5?'<p class="note" style="margin:8px 0 0;font-size:.85rem;color:var(--muted)">Ficar em uma perna só foi mais difícil. É um bom ponto para treinar, sempre com apoio por perto.</p>':''}</div>`;
 
   // fatores de risco presentes
   const fat=[];
@@ -589,7 +592,7 @@ function resultadoHTML(r){
 
   const comp=ant?`<h3>Comparação com a avaliação anterior${ant.data?` (${esc(ant.data)})`:''}</h3>
     <div class="testes">
-      <div class="teste"><header><b>${ic('grafico')}Nível de risco</b></header><p style="margin:0">Antes: <b>${esc(ant.risco||'—')}</b> · Agora: <b>${r.risco}</b></p></div>
+      <div class="teste"><header><b>${ic('grafico')}Classificação da triagem</b></header><p style="margin:0">Antes: <b>${esc(ant.risco||'—')}</b> · Agora: <b>${r.risco}</b></p></div>
       <div class="teste"><header><b>${ic('tug')}TUG: antes</b></header>${I?I.barra({valor:ant.tug_s===''?null:ant.tug_s,max:30,ref:12,bom:'abaixo',unidade:' s'}):''}
         <header style="margin-top:6px"><b>${ic('tug')}TUG: agora</b></header>${I?I.barra({valor:A.tug.status?null:A.tug.s,max:30,ref:12,bom:'abaixo',unidade:' s'}):''}</div>
       <div class="teste"><header><b>${ic('sl')}Sentar e levantar: antes</b></header>${I?I.barra({valor:ant.sl_reps===''?null:ant.sl_reps,max:slMax,ref:r.ref||12,bom:'acima',unidade:'x'}):''}
@@ -597,8 +600,9 @@ function resultadoHTML(r){
     </div>`:'';
 
   const orient=[];
-  if(r.risco==='alto')orient.push(['Exercício com acompanhamento','Faça exercícios de força e equilíbrio com orientação de um fisioterapeuta, pelo menos 2 vezes por semana. Não comece sozinho exercícios de equilíbrio.']);
-  else orient.push(['Exercícios de força e equilíbrio','Pelo menos 2 a 3 vezes por semana, de preferência em grupo e com orientação. Em casa, sempre com um apoio firme ao lado (pia ou encosto de cadeira).'],
+  if(r.risco==='alto')orient.push(['Exercícios com orientação','O melhor caminho é fazer exercícios de força e equilíbrio com orientação de um profissional, 2 vezes por semana. Até lá, siga se movimentando no dia a dia e deixe os exercícios de equilíbrio para quando tiver acompanhamento.'],
+    ['Sentar e levantar','Numa cadeira firme encostada na parede, levante e sente devagar, 5 a 10 vezes. Pode usar as mãos para ajudar.']);
+  else orient.push(['Exercícios de força e equilíbrio','2 a 3 vezes por semana, de preferência em grupo e com orientação. Em casa, faça sempre com um apoio firme ao lado, como a pia ou o encosto de uma cadeira.'],
     ['Sentar e levantar','Numa cadeira firme, levante e sente devagar, 10 vezes, com as mãos à frente do corpo. Use as mãos se precisar.'],
     ['Ponta dos pés','Segurando na pia, suba na ponta dos pés e desça devagar, 10 vezes.']);
   D.TRIAGEM.forEach(q=>{if(A.tri[q.id]==='sim'&&D.ORIENT_TRIAGEM[q.id])orient.push([q.t.replace(/\?$/,''),D.ORIENT_TRIAGEM[q.id]])});
@@ -607,17 +611,18 @@ function resultadoHTML(r){
   const cab=[C.INSTITUICAO,C.NOME_PROJETO].filter(Boolean).map(esc).join(' · ');
 
   return `<div class="rel-cab">${cab?`<div class="rel-inst">${cab}</div>`:''}<div class="print-only"><h2>Relatório de triagem de risco de quedas</h2><p>${new Date().toLocaleDateString('pt-BR')}${A.iniciais?' · '+esc(A.iniciais):''} · ${esc(A.idade)} anos · ${A.sexo==='F'?'feminino':'masculino'} · código ${A.codigo}</p></div></div>
-  <div class="nivel ${r.risco}"><div class="nivel-g"><div><h2>${T[0]}</h2><p>${T[1]}</p></div>${I?`<div class="gbox">${I.medidor(r.risco)}</div>`:''}</div></div>
+  <div class="nivel ${r.risco}"><div class="nivel-g"><div><h2>${T[0]}</h2><p>${T[1]}</p><p class="classif">${T[3]}</p></div>${I?`<div class="gbox">${I.medidor(r.risco)}</div>`:''}</div></div>
   ${r.incompleto?'<div class="warnbox">Um ou mais testes não foram realizados por recusa. O resultado considera só o que foi avaliado.</div>':''}
-  <div class="box"><b>Encaminhamento</b><p>${T[2]}</p>${r.risco!=='baixo'&&C.ENCAMINHAMENTO?`<p>${esc(C.ENCAMINHAMENTO)}</p>`:''}</div>
+  <div class="box"><b>Próximo passo</b><p>${T[2]}</p>${r.risco==='moderado'&&C.ENCAMINHAMENTO?`<p>${esc(C.ENCAMINHAMENTO)}</p>`:''}</div>
+  <div class="box calma"><p>Esta é uma triagem de prevenção, não um diagnóstico. Ela serve para mostrar o que dá para fortalecer, e quedas podem ser evitadas com cuidados simples.</p></div>
   <h3>Resultado dos testes</h3>
   <div class="testes">${tugCard}${slCard}${eqCard}</div>
-  <h3>Fatores de risco encontrados</h3>
-  ${fat.length?`<div class="fatores">${fat.map(([i,t])=>`<span>${ic(i,16)}${esc(t)}</span>`).join('')}</div>`:'<p style="color:var(--muted)">Nenhum fator de risco relatado na triagem.</p>'}
+  <h3>Pontos de atenção que você relatou</h3>
+  ${fat.length?`<div class="fatores">${fat.map(([i,t])=>`<span>${ic(i,16)}${esc(t)}</span>`).join('')}</div>`:'<p style="color:var(--muted)">Nenhum ponto de atenção relatado.</p>'}
   ${comp}
   <h3>Orientações</h3><ul class="list">${orient.map(([n,t])=>`<li><b>${esc(n)}</b>${esc(t)}</li>`).join('')}</ul>
   ${casa.length?`<h3>Ajustes na casa</h3><ul class="list">${casa.map(q=>`<li>${esc(q.dica)}</li>`).join('')}</ul>`:''}
-  <h3>Se cair</h3><div class="box"><p>Fique calmo e não levante de uma vez. Veja se consegue se mexer sem dor forte. Role de lado, fique de quatro apoios, arraste-se até uma cadeira firme e apoie-se nela para levantar. Se não conseguir ou sentir dor forte, peça ajuda e ligue 192 (SAMU). Deixe o telefone sempre ao alcance.</p></div>
+  <h3>Bom saber: como levantar do chão com segurança</h3><div class="box"><p>Se um dia escorregar, respire fundo e não tenha pressa. Veja se consegue se mexer sem dor. Vire de lado, fique de quatro apoios, vá até uma cadeira firme e apoie-se nela para levantar. Se sentir dor forte ou não conseguir, peça ajuda: o SAMU atende pelo 192. Deixar o telefone sempre por perto também ajuda.</p></div>
   <div class="box"><b>Código de acompanhamento</b><div class="code">${A.codigo}</div>Guarde este código para a próxima avaliação.</div>
   <div class="stack no-print"><button class="btn" type="button" id="imprimir">Imprimir relatório</button>${wa}<button class="btn ghost" type="button" id="nova">Nova avaliação</button></div>
   ${A.aplicador?`<div class="assin print-only"><div>${esc(A.aplicador)}<br>Avaliador(a)${C.INSTITUICAO?' · '+esc(C.INSTITUICAO):''}</div></div>`:''}
